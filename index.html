@@ -143,7 +143,8 @@ footer{border-top:1px solid var(--border);padding:28px 0;color:#8f819f;text-alig
 .banner-dots{position:absolute;left:50%;bottom:13px;transform:translateX(-50%);display:flex;gap:7px;z-index:4}
 .banner-dot{width:8px;height:8px;border-radius:50%;border:0;background:rgba(255,255,255,.48);cursor:pointer;padding:0}.banner-dot.active{width:24px;border-radius:8px;background:#a46bff}
 @media(max-width:700px){.banner-slider{width:94%;border-radius:14px;margin-top:14px}.banner-arrow{width:36px;height:36px;font-size:23px}.banner-prev{left:8px}.banner-next{right:8px}.banner-dots{bottom:8px}}
-</style>
+
+.ez-payment-result{margin-top:16px;padding:18px;border:1px solid rgba(124,255,180,.35);border-radius:16px;background:rgba(40,180,110,.08);line-height:1.8}.ez-payment-result h3{margin:0 0 8px;color:#9fffc1}.ez-payment-result .pay-row{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid rgba(255,255,255,.08);padding:5px 0}.ez-payment-result .pay-row:last-child{border-bottom:0}.ez-payment-result b{color:#fff}</style>
 </head>
 <body>
 <header>
@@ -535,14 +536,21 @@ footer{border-top:1px solid var(--border);padding:28px 0;color:#8f819f;text-alig
             <button type="button" class="copy-btn" onclick="copyEZ()">▣ COPY NUMBER</button>
             <div class="ez-note">After making the payment, upload your EZ Cash receipt photo below.</div><div class="ez-note" style="margin-top:10px;color:#f0d7ff;font-size:12px;line-height:1.7;font-weight:700;">(Ezcash දැමීමේදී වැඩිපුර Rs.20ක් දැමීමට කාරුණික වන්න. මෙය අපට නොවේ ezcash ආයතනයටයි.)<br>(ezcash දාන විට RN(REFERENCE NUBMER) එක තියෙනවනම් පමණක් රිසිට් පත දාන්න.නැත්නම් ඔබට මුදල් අහිමිවිය හැක)</div>
           </div>
-          <div class="reference-row receipt-row">
-            <label for="receipt">EZ Cash Receipt Photo</label>
+          <div class="reference-row">
+            <label for="rnNumber">EZ Cash RN (REFERENCE NUMBER)</label>
+            <input id="rnNumber" type="text" inputmode="text" placeholder="Enter RN / Reference Number">
+            <small>ⓘ Payment කළාට පස්සේ receipt එකේ RN / Reference Number තියෙනවා නම් මෙතන දාන්න.</small>
+          </div>
+          <div class="reference-row receipt-row" id="receiptArea">
+            <label for="receipt">EZ Cash Receipt Photo <span style="opacity:.7">(RN තියෙනවා නම් පමණක්)</span></label>
             <input id="receipt" type="file" accept="image/*" capture="environment">
             <button type="button" id="removeReceipt" class="copy-btn" style="display:none;margin-top:8px;">✕ REMOVE RECEIPT</button>
-            <small>ⓘ Select the EZ Cash receipt photo. If your device supports direct file sharing, you can share it to WhatsApp with the order.</small>
+            <small>ⓘ RN එක තිබේ නම් පමණක් receipt photo එක දාන්න.</small>
             <div id="receiptPreview" class="receipt-preview" hidden></div>
           </div>
-          <button class="btn btn-primary pay-btn" onclick="sendWhatsApp()">↥ SEND PAYMENT DETAILS TO WHATSAPP</button>
+          <div id="ezPaymentResult" class="ez-payment-result" hidden></div>
+          <button class="btn btn-primary pay-btn" onclick="submitEZPayment()">✓ SUBMIT EZ CASH PAYMENT</button>
+          <button class="btn pay-btn" onclick="sendWhatsApp()" style="margin-top:10px;">↥ SEND PAYMENT DETAILS TO WHATSAPP</button>
         </div>
       </div>
     </div>
@@ -616,9 +624,36 @@ receiptInput.addEventListener('change',()=>{
   removeReceipt.style.display='inline-block';
 });
 removeReceipt.addEventListener('click',clearReceipt);
+const rnInput=document.getElementById('rnNumber');
+const receiptArea=document.getElementById('receiptArea');
+function updateRNState(){
+  const hasRN=rnInput.value.trim().length>0;
+  receiptArea.style.opacity=hasRN?'1':'.55';
+}
+rnInput.addEventListener('input',updateRNState);
+updateRNState();
+function submitEZPayment(){
+  const uid=document.getElementById('uid').value.trim();
+  const rn=document.getElementById('rnNumber').value.trim();
+  if(!uid){ alert('Please enter your Free Fire Player UID.'); return; }
+  if(!selected.size){ alert('Please select at least one package.'); document.getElementById('packages').scrollIntoView({behavior:'smooth'}); return; }
+  if(!rn){ alert('Please enter your EZ Cash RN / Reference Number.'); return; }
+  let total=0; selected.forEach(x=>total+=x.price*x.qty);
+  const result=document.getElementById('ezPaymentResult');
+  result.hidden=false;
+  result.innerHTML='<h3>✓ EZ Cash Payment Submitted</h3>'+
+    '<div class="pay-row"><span>EZ Cash Number</span><b>076 590 6553</b></div>'+
+    '<div class="pay-row"><span>Order Total</span><b>Rs. '+money(total)+'</b></div>'+
+    '<div class="pay-row"><span>EZ Cash Fee</span><b>Rs. 20</b></div>'+
+    '<div class="pay-row"><span>Please Pay</span><b>Rs. '+money(total+20)+'</b></div>'+
+    '<div class="pay-row"><span>RN / Reference</span><b>'+rn.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))+'</b></div>'+
+    '<div style="margin-top:10px;font-size:12px;opacity:.85">Payment details saved on this page. Please send the order to WhatsApp for confirmation.</div>';
+  result.scrollIntoView({behavior:'smooth',block:'center'});
+}
 function sendWhatsApp(){
   const uid=document.getElementById('uid').value.trim();
   const name=document.getElementById('name').value.trim();
+  const rn=document.getElementById('rnNumber').value.trim();
   if(!uid){ alert('Please enter your Free Fire Player UID.'); return; }
   if(!selected.size){ alert('Please select at least one package.'); document.getElementById('packages').scrollIntoView({behavior:'smooth'}); return; }
 
@@ -643,6 +678,7 @@ function sendWhatsApp(){
     '',
     'Payment Method: EZ Cash',
     'EZ Cash Number: 076 590 6553',
+    'RN / Reference Number: '+(rn||'Not provided'),
     'Receipt Photo: '+(receiptFile?'Selected':'Not selected'),
     '',
     'Please confirm my order.'
