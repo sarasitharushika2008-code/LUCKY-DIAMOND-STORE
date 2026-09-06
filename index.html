@@ -111,6 +111,38 @@ footer{border-top:1px solid var(--border);padding:28px 0;color:#8f819f;text-alig
 .receipt-row input[type="file"]{width:100%;padding:12px;border:1px dashed rgba(190,130,255,.55);border-radius:12px;background:#0d0618;color:#f4eaff;font-size:13px;box-sizing:border-box;}
 .receipt-preview{margin-top:12px;border:1px solid rgba(190,130,255,.35);border-radius:12px;padding:8px;background:#0b0512;text-align:center;}
 .receipt-preview img{max-width:220px;max-height:220px;border-radius:8px;display:block;margin:auto;}
+
+.auth-btn{margin-left:4px}
+.user-chip{display:none;align-items:center;gap:8px;color:#eadcff;font-size:12px;font-weight:700;padding:9px 12px;border:1px solid rgba(166,112,255,.35);border-radius:22px;background:rgba(45,18,72,.45)}
+.auth-modal{position:fixed;inset:0;background:rgba(3,1,8,.78);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:18px;z-index:1000}
+.auth-modal.show{display:flex}
+.auth-box{width:min(430px,100%);background:linear-gradient(180deg,#1a0d2b,#0e0718);border:1px solid rgba(166,112,255,.5);border-radius:20px;padding:24px;box-shadow:0 25px 80px rgba(0,0,0,.6);position:relative}
+.auth-close{position:absolute;right:14px;top:12px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(166,112,255,.3);background:#10081b;color:#fff;cursor:pointer;font-size:18px}
+.auth-box h2{font-family:Orbitron;font-size:22px;margin-bottom:6px}
+.auth-sub{color:#a99bb8;font-size:12px;margin-bottom:18px}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.auth-tab{border:1px solid rgba(166,112,255,.3);background:#0d0717;color:#bdaed0;padding:10px;border-radius:10px;font-weight:800;cursor:pointer}
+.auth-tab.active{background:linear-gradient(135deg,#7c2cff,#5516bd);color:#fff;border-color:#8f55ff}
+.auth-form{display:grid;gap:11px}
+.auth-form label{font-size:11px;color:#cfc2dd;font-weight:700}
+.auth-form input{width:100%;margin-top:6px}
+.auth-msg{min-height:18px;font-size:11px;color:#ff9eea;font-weight:700}
+.auth-note{font-size:10px;line-height:1.6;color:#8e7d9f;margin-top:10px}
+.logout-btn{display:none}
+@media(max-width:760px){.user-chip{display:none!important}.auth-btn{margin-left:0}}
+
+
+/* Gaming banner slider */
+.banner-slider{width:min(1180px,94%);margin:22px auto 0;position:relative;overflow:hidden;border:1px solid rgba(166,112,255,.28);border-radius:22px;background:#090511;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.banner-track{display:flex;transition:transform .55s ease;will-change:transform}
+.banner-slide{min-width:100%;position:relative;display:block;cursor:pointer;aspect-ratio:1202/707;background:#090511}
+.banner-slide img{width:100%;height:100%;display:block;object-fit:cover}.banner-slide.vertical-banner img{object-fit:contain;padding:10px;box-sizing:border-box}
+.banner-arrow{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:46px;border-radius:50%;border:1px solid rgba(185,128,255,.65);background:rgba(7,4,15,.72);color:#fff;font-size:30px;line-height:1;display:grid;place-items:center;cursor:pointer;z-index:3;backdrop-filter:blur(8px)}
+.banner-arrow:hover{background:rgba(124,44,255,.75)}
+.banner-prev{left:16px}.banner-next{right:16px}
+.banner-dots{position:absolute;left:50%;bottom:13px;transform:translateX(-50%);display:flex;gap:7px;z-index:4}
+.banner-dot{width:8px;height:8px;border-radius:50%;border:0;background:rgba(255,255,255,.48);cursor:pointer;padding:0}.banner-dot.active{width:24px;border-radius:8px;background:#a46bff}
+@media(max-width:700px){.banner-slider{width:94%;border-radius:14px;margin-top:14px}.banner-arrow{width:36px;height:36px;font-size:23px}.banner-prev{left:8px}.banner-next{right:8px}.banner-dots{bottom:8px}}
 </style>
 </head>
 <body>
@@ -118,11 +150,52 @@ footer{border-top:1px solid var(--border);padding:28px 0;color:#8f819f;text-alig
   <div class="container nav">
     <a class="brand" href="#"><div class="logo">💎</div><div><b>LUCKY DIAMOND</b><small>TOPUP STORE</small></div></a>
     <nav class="navlinks">
-      <a href="#packages">Packages</a><a href="#order">Order</a><a href="#order" class="btn btn-primary">TOP UP NOW</a>
+      <a href="#packages">Packages</a><a href="#order">Order</a><span id="userChip" class="user-chip">👤 <span id="userName">Guest</span></span><button type="button" id="authBtn" class="btn btn-primary auth-btn" onclick="openAuth()">LOGIN / REGISTER</button><button type="button" id="logoutBtn" class="btn auth-btn" style="display:none;border:1px solid rgba(181,128,255,.45);background:rgba(124,44,255,.07)" onclick="logoutUser()">LOGOUT</button><a href="#order" class="btn btn-primary">TOP UP NOW</a>
     </nav>
     <button class="mobile-menu" onclick="document.querySelector('.navlinks').style.display=document.querySelector('.navlinks').style.display==='flex'?'none':'flex'">☰</button>
   </div>
 </header>
+
+
+<div id="authModal" class="auth-modal" aria-hidden="true">
+  <div class="auth-box" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button type="button" class="auth-close" onclick="closeAuth()">×</button>
+    <h2 id="authTitle">LOGIN</h2>
+    <div class="auth-sub">LUCKY DIAMOND STORE account</div>
+    <div class="auth-tabs">
+      <button type="button" id="loginTab" class="auth-tab active" onclick="showAuthTab('login')">LOGIN</button>
+      <button type="button" id="registerTab" class="auth-tab" onclick="showAuthTab('register')">REGISTER</button>
+    </div>
+    <form id="loginForm" class="auth-form" onsubmit="loginUser(event)">
+      <div><label>Email</label><input id="loginEmail" type="email" autocomplete="email" placeholder="Enter your email" required></div>
+      <div><label>Password</label><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter your password" required></div>
+      <div id="loginMsg" class="auth-msg"></div>
+      <button class="btn btn-primary" type="submit">LOGIN</button>
+    </form>
+    <form id="registerForm" class="auth-form" style="display:none" onsubmit="registerUser(event)">
+      <div><label>Name</label><input id="regName" type="text" autocomplete="name" placeholder="Enter your name" required></div>
+      <div><label>Email</label><input id="regEmail" type="email" autocomplete="email" placeholder="Enter your email" required></div>
+      <div><label>Password</label><input id="regPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Minimum 6 characters" required></div>
+      <div id="registerMsg" class="auth-msg"></div>
+      <button class="btn btn-primary" type="submit">CREATE ACCOUNT</button>
+    </form>
+    <div class="auth-note">Note: This simple version saves the account in this browser only. It does not send emails or require email verification.</div>
+  </div>
+</div>
+
+
+<section class="banner-slider" aria-label="LUCKY DIAMOND STORE promotions">
+  <div class="banner-track" id="bannerTrack">
+    <a class="banner-slide" href="#packages"><img src="images/banner1.jpg" alt="Free Fire promotion"></a>
+    <a class="banner-slide" href="#packages"><img src="images/banner2.jpg" alt="Weekly Membership promotion"></a>
+    <a class="banner-slide" href="#packages"><img src="images/banner3.jpg" alt="Monthly Membership promotion"></a>
+    <a class="banner-slide" href="#packages"><img src="images/banner4.jpg" alt="Free Fire promotion"></a>
+    <a class="banner-slide vertical-banner" href="#packages"><img src="images/banner5.jpg" alt="LUCKY DIAMOND STORE packages and EZ Cash promotion"></a>
+  </div>
+  <button class="banner-arrow banner-prev" id="bannerPrev" type="button" aria-label="Previous banner">‹</button>
+  <button class="banner-arrow banner-next" id="bannerNext" type="button" aria-label="Next banner">›</button>
+  <div class="banner-dots" id="bannerDots" aria-label="Banner navigation"></div>
+</section>
 
 <main>
 <section class="hero">
@@ -604,6 +677,82 @@ document.querySelectorAll('.package-card').forEach(card=>{
   card.querySelector('.plus').addEventListener('click',()=>updateCard(card,1));
   card.querySelector('.minus').addEventListener('click',()=>updateCard(card,-1));
 });
+// Simple browser-only account system (no email messages).
+const AUTH_USERS_KEY = 'luckyDiamondUsers';
+const AUTH_CURRENT_KEY = 'luckyDiamondCurrentUser';
+function getUsers(){ try{return JSON.parse(localStorage.getItem(AUTH_USERS_KEY)||'[]')}catch(e){return []} }
+function saveUsers(users){ localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(users)); }
+function openAuth(){ document.getElementById('authModal').classList.add('show'); document.getElementById('authModal').setAttribute('aria-hidden','false'); showAuthTab('login'); }
+function closeAuth(){ document.getElementById('authModal').classList.remove('show'); document.getElementById('authModal').setAttribute('aria-hidden','true'); }
+function showAuthTab(tab){
+  const login=tab==='login';
+  document.getElementById('authTitle').textContent=login?'LOGIN':'REGISTER';
+  document.getElementById('loginForm').style.display=login?'grid':'none';
+  document.getElementById('registerForm').style.display=login?'none':'grid';
+  document.getElementById('loginTab').classList.toggle('active',login);
+  document.getElementById('registerTab').classList.toggle('active',!login);
+  document.getElementById('loginMsg').textContent=''; document.getElementById('registerMsg').textContent='';
+}
+function registerUser(e){
+  e.preventDefault();
+  const name=document.getElementById('regName').value.trim();
+  const email=document.getElementById('regEmail').value.trim().toLowerCase();
+  const password=document.getElementById('regPassword').value;
+  const msg=document.getElementById('registerMsg');
+  const users=getUsers();
+  if(users.some(u=>u.email===email)){msg.textContent='This email is already registered.';return;}
+  users.push({name,email,password}); saveUsers(users);
+  localStorage.setItem(AUTH_CURRENT_KEY,JSON.stringify({name,email}));
+  updateAuthUI(); closeAuth(); alert('Account created successfully!');
+}
+function loginUser(e){
+  e.preventDefault();
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+  const password=document.getElementById('loginPassword').value;
+  const msg=document.getElementById('loginMsg');
+  const user=getUsers().find(u=>u.email===email && u.password===password);
+  if(!user){msg.textContent='Incorrect email or password.';return;}
+  localStorage.setItem(AUTH_CURRENT_KEY,JSON.stringify({name:user.name,email:user.email}));
+  updateAuthUI(); closeAuth(); alert('Login successful!');
+}
+function logoutUser(){ localStorage.removeItem(AUTH_CURRENT_KEY); updateAuthUI(); }
+function updateAuthUI(){
+  let current=null; try{current=JSON.parse(localStorage.getItem(AUTH_CURRENT_KEY)||'null')}catch(e){}
+  const authBtn=document.getElementById('authBtn'), logout=document.getElementById('logoutBtn'), chip=document.getElementById('userChip'), name=document.getElementById('userName');
+  if(current){authBtn.style.display='none';logout.style.display='inline-flex';chip.style.display='inline-flex';name.textContent=current.name;}
+  else{authBtn.style.display='inline-flex';logout.style.display='none';chip.style.display='none';name.textContent='Guest';}
+}
+document.getElementById('authModal').addEventListener('click',e=>{if(e.target.id==='authModal')closeAuth()});
+updateAuthUI();
+
+// Promotion banner slider
+(function(){
+  const track=document.getElementById('bannerTrack');
+  if(!track) return;
+  const slides=[...document.querySelectorAll('.banner-slide')];
+  const dots=document.getElementById('bannerDots');
+  const prev=document.getElementById('bannerPrev');
+  const next=document.getElementById('bannerNext');
+  let index=0, timer;
+  slides.forEach((_,i)=>{
+    const d=document.createElement('button');
+    d.type='button'; d.className='banner-dot'+(i===0?' active':'');
+    d.setAttribute('aria-label','Go to banner '+(i+1));
+    d.addEventListener('click',()=>go(i,true)); dots.appendChild(d);
+  });
+  const dotEls=[...dots.children];
+  function go(i,manual=false){
+    index=(i+slides.length)%slides.length;
+    track.style.transform='translateX(-'+(index*100)+'%)';
+    dotEls.forEach((d,n)=>d.classList.toggle('active',n===index));
+    if(manual) restart();
+  }
+  function restart(){clearInterval(timer); timer=setInterval(()=>go(index+1),5000);}
+  prev.addEventListener('click',()=>go(index-1,true));
+  next.addEventListener('click',()=>go(index+1,true));
+  restart();
+})();
+
 </script>
 </body>
 </html>
