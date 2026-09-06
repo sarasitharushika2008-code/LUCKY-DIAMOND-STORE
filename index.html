@@ -8,18 +8,18 @@
 <meta name="description" content="Lucky Diamond Store - Free Fire top up in Sri Lanka. Select multiple diamond and membership packages, choose quantities and order through WhatsApp.">
 <meta name="keywords" content="Lucky Diamond Store, Free Fire top up Sri Lanka, Free Fire diamonds Sri Lanka, FF topup Sri Lanka, Free Fire topup">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<link rel="canonical" href="https://sarasitharushika2008-code.github.io/LUCKY-DIAMOND-STORE/">
+<link rel="canonical" href="https://polite-wisp-fdf5b2.netlify.app/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Lucky Diamond Store | Free Fire Top Up Sri Lanka">
 <meta property="og:description" content="Free Fire diamond and membership top up store in Sri Lanka.">
-<meta property="og:url" content="https://sarasitharushika2008-code.github.io/LUCKY-DIAMOND-STORE/">
+<meta property="og:url" content="https://polite-wisp-fdf5b2.netlify.app/">
 <meta name="twitter:card" content="summary">
 <script type="application/ld+json">
 {
   "@context":"https://schema.org",
   "@type":"OnlineStore",
   "name":"Lucky Diamond Store",
-  "url":"https://sarasitharushika2008-code.github.io/LUCKY-DIAMOND-STORE/",
+  "url":"https://polite-wisp-fdf5b2.netlify.app/",
   "description":"Free Fire top up store in Sri Lanka.",
   "areaServed":"LK"
 }
@@ -107,6 +107,10 @@ footer{border-top:1px solid var(--border);padding:28px 0;color:#8f819f;text-alig
 @media(max-width:1050px){.package-grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:700px){.navlinks{display:none}.mobile-menu{display:block}.package-grid{grid-template-columns:repeat(2,1fr);gap:10px}.hero{min-height:430px;padding-top:55px}.form-card{grid-template-columns:1fr}.form-card .full{grid-column:auto}.package-art{height:75px}}
 @media(max-width:380px){.package-grid{grid-template-columns:1fr 1fr}.package-card{padding:10px}}
+
+.receipt-row input[type="file"]{width:100%;padding:12px;border:1px dashed rgba(190,130,255,.55);border-radius:12px;background:#0d0618;color:#f4eaff;font-size:13px;box-sizing:border-box;}
+.receipt-preview{margin-top:12px;border:1px solid rgba(190,130,255,.35);border-radius:12px;padding:8px;background:#0b0512;text-align:center;}
+.receipt-preview img{max-width:220px;max-height:220px;border-radius:8px;display:block;margin:auto;}
 </style>
 </head>
 <body>
@@ -456,16 +460,14 @@ footer{border-top:1px solid var(--border);padding:28px 0;color:#8f819f;text-alig
             <div class="ez-label">SEND PAYMENT TO</div>
             <div class="ez-number" id="ezNumber">076 590 6553</div>
             <button type="button" class="copy-btn" onclick="copyEZ()">▣ COPY NUMBER</button>
-            <div class="ez-note">After making the payment, enter your transaction/reference number below.</div><div class="ez-note" style="margin-top:10px;color:#f0d7ff;font-size:12px;line-height:1.6;font-weight:700;">(Ezcash දැමීමේදී වැඩිපුර Rs.20ක් දැමීමට කාරුණික වන්න. මෙය අපට නොවේ ezcash ආයතනයටයි.)</div>
+            <div class="ez-note">After making the payment, upload your EZ Cash receipt photo below.</div><div class="ez-note" style="margin-top:10px;color:#f0d7ff;font-size:12px;line-height:1.7;font-weight:700;">(Ezcash දැමීමේදී වැඩිපුර Rs.20ක් දැමීමට කාරුණික වන්න. මෙය අපට නොවේ ezcash ආයතනයටයි.)<br>(ezcash දාන විට RN(REFERENCE NUBMER) එක තියෙනවනම් පමණක් රිසිට් පත දාන්න.නැත්නම් ඔබට මුදල් අහිමිවිය හැක)</div>
           </div>
-          <div class="reference-row">
-            <label for="reference">EZ Cash Transaction / Reference Number</label>
-            <div class="reference-input">
-              <span>#</span>
-              <input id="reference" placeholder="e.g. 20250530..." autocomplete="off">
-              <button type="button" onclick="copyReference()" aria-label="Copy reference">▣</button>
-            </div>
-            <small>ⓘ Find this in your EZ Cash confirmation SMS.</small>
+          <div class="reference-row receipt-row">
+            <label for="receipt">EZ Cash Receipt Photo</label>
+            <input id="receipt" type="file" accept="image/*" capture="environment">
+            <button type="button" id="removeReceipt" class="copy-btn" style="display:none;margin-top:8px;">✕ REMOVE RECEIPT</button>
+            <small>ⓘ Select the EZ Cash receipt photo. If your device supports direct file sharing, you can share it to WhatsApp with the order.</small>
+            <div id="receiptPreview" class="receipt-preview" hidden></div>
           </div>
           <button class="btn btn-primary pay-btn" onclick="sendWhatsApp()">↥ SEND PAYMENT DETAILS TO WHATSAPP</button>
         </div>
@@ -516,10 +518,31 @@ function copyEZ(){
   const b=document.querySelector('.copy-btn'); const old=b.textContent;
   b.textContent='✓ COPIED'; setTimeout(()=>b.textContent=old,1200);
 }
-function copyReference(){
-  const v=document.getElementById('reference').value.trim();
-  if(v) navigator.clipboard?.writeText(v);
+let receiptFile=null;
+const receiptInput=document.getElementById('receipt');
+const removeReceipt=document.getElementById('removeReceipt');
+function clearReceipt(){
+  receiptFile=null;
+  receiptInput.value='';
+  const preview=document.getElementById('receiptPreview');
+  preview.innerHTML='';
+  preview.hidden=true;
+  removeReceipt.style.display='none';
 }
+receiptInput.addEventListener('change',()=>{
+  receiptFile=receiptInput.files?.[0]||null;
+  const preview=document.getElementById('receiptPreview');
+  preview.innerHTML='';
+  if(!receiptFile){ clearReceipt(); return; }
+  if(!receiptFile.type.startsWith('image/')){ clearReceipt(); alert('Please select an image receipt.'); return; }
+  const img=document.createElement('img');
+  img.alt='EZ Cash receipt preview';
+  img.src=URL.createObjectURL(receiptFile);
+  preview.appendChild(img);
+  preview.hidden=false;
+  removeReceipt.style.display='inline-block';
+});
+removeReceipt.addEventListener('click',clearReceipt);
 function sendWhatsApp(){
   const uid=document.getElementById('uid').value.trim();
   const name=document.getElementById('name').value.trim();
@@ -527,15 +550,54 @@ function sendWhatsApp(){
   if(!selected.size){ alert('Please select at least one package.'); document.getElementById('packages').scrollIntoView({behavior:'smooth'}); return; }
 
   let total=0, totalQty=0;
-  const lines=['Hello LUCKY DIAMOND STORE','','I want to place a Free Fire top-up order.','',
-    'Name: '+(name||'Not provided'),'UID: '+uid,'','SELECTED PACKAGES:'];
+  const lines=[
+    'Hello LUCKY DIAMOND STORE','',
+    'I want to place a Free Fire top-up order.','',
+    'Name: '+(name||'Not provided'),
+    'UID: '+uid,'','SELECTED PACKAGES:'
+  ];
   selected.forEach(x=>{
-    const sub=x.price*x.qty; total+=sub; totalQty+=x.qty;
+    const sub=x.price*x.qty;
+    total+=sub; totalQty+=x.qty;
     lines.push('- '+x.name+' | Quantity: '+x.qty+' | Unit Price: Rs. '+money(x.price)+' | Subtotal: Rs. '+money(sub));
   });
-  lines.push('','Total Packages: '+selected.size,'Total Quantity: '+totalQty,'TOTAL: Rs. '+money(total),'EZ Cash Payment: Rs. '+money(total+20)+' (includes Rs. 20 EZ Cash fee)','',
-    'Payment Method: EZ Cash','EZ Cash Number: 076 590 6553','Transaction / Reference: '+(document.getElementById('reference').value.trim()||'Not provided'),'','Please confirm my order and send payment instructions.');
-  window.location.href='https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent(lines.join('\n'));
+  lines.push(
+    '','Total Packages: '+selected.size,
+    'Total Quantity: '+totalQty,
+    'ORDER TOTAL: Rs. '+money(total),
+    'EZ Cash Fee: Rs. 20',
+    'PLEASE PAY: Rs. '+money(total+20),
+    '',
+    'Payment Method: EZ Cash',
+    'EZ Cash Number: 076 590 6553',
+    'Receipt Photo: '+(receiptFile?'Selected':'Not selected'),
+    '',
+    'Please confirm my order.'
+  );
+
+  const message=lines.join('\n');
+  // On supported phones/tablets, use the native Share Sheet so the receipt image
+  // can be selected together with the order message and sent to WhatsApp.
+  if(receiptFile && navigator.share && navigator.canShare){
+    try{
+      const shareData={title:'LUCKY DIAMOND STORE Order',text:message,files:[receiptFile]};
+      if(navigator.canShare(shareData)){
+        navigator.share(shareData).catch(err=>{
+          if(err && err.name !== 'AbortError'){
+            window.open('https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent(message),'_blank');
+          }
+        });
+        return;
+      }
+    }catch(e){}
+  }
+  // Desktop browsers/WhatsApp Web generally block websites from silently
+  // attaching a local file to a WhatsApp chat. In that case open WhatsApp with
+  // the full message and let the user attach the receipt once.
+  window.open('https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent(message),'_blank');
+  if(receiptFile){
+    setTimeout(()=>alert('WhatsApp message eka ready. Receipt photo eka chat ekata attach karanna.'),700);
+  }
 }
 
 document.querySelectorAll('.package-card').forEach(card=>{
