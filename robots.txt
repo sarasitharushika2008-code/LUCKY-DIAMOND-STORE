@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://polite-wisp-fdf5b2.netlify.app/sitemap.xml
+Sitemap: https://sarasitharushika2008-code.github.io/LUCKY-DIAMOND-STORE/sitemap.xml
