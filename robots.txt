@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://polite-wisp-fdf5b2.netlify.app/sitemap.xml
